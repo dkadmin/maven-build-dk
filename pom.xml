@@ -24,7 +24,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven-compiler-plugin.version}</version>
+          <version>3.1.2</version>
           <configuration>
             <release>11</release>
           </configuration>
@@ -60,7 +60,7 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>[3.8.6,)</version>
+                  <version>[3.8.7,)</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
                   <version>[11,)</version>
