@@ -18,12 +18,17 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                // Maven clean and package steps
+                sh 'mvn clean'
+                sh 'mvn package'
+                echo "Build successful"
             }
         }
         stage('Test') {
             steps {
+                 // Maven test step
                 sh 'mvn test'
+                echo "Test successful"
             }
             post {
                 always {
@@ -31,18 +36,18 @@ pipeline {
                 }
             }
         }
-        stage('Deliver') {
-            steps {
-                sh './jenkins/scripts/deliver.sh'
-            }   
-        }
+//        stage('Deliver') {
+//            steps {
+               // sh './jenkins/scripts/deliver.sh'
+//            }   
+//        }
                 stage('Deploy') {
             steps {
                 // Tomcat deployment step
                 deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '', url: 'http://3.111.245.213:8080/')], 
                        contextPath: 'simpliearnarfact', 
                        onFailure: false, 
-                       war: '**/*.war'
+                       war: '**/*.jar'
                 echo "Deploy successful"
             }
         }
