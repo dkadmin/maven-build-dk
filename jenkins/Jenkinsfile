@@ -77,7 +77,7 @@ pipeline {
                         success {
                             echo 'Build on Maven Slave 1 successful'
                             echo 'Archiving artifacts...'
-                            archiveArtifacts artifacts: '**/target/*.war'
+                            archiveArtifacts artifacts: '**/target/*.jar'
                         }
                         failure {
                             echo 'Build on Maven Slave 1 failed'
