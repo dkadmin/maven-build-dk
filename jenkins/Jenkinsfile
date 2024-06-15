@@ -1,31 +1,106 @@
 pipeline {
-    agent any
+    agent none
     
     stages {
-        stage('Git-Checkout') {
+        stage('Checkout') {
+            agent {
+                label 'master' // This stage runs on the Jenkins master
+            }
             steps {
-                // Git checkout step
-                git credentialsId: 'tomcatcred', url: 'https://github.com/dkadmin/maven-build-dk.git'
-                echo "Checkout successful"
+                echo 'Checking out code from Git...'
+                git credentialsId: 'github', url: 'https://github.com/dkadmin/maven-build-dk.git'
             }
         }
         
-        stage('Compile') {
-            steps {
-                // Maven compile step
-                sh script: 'mvn compile'
-                echo "Compile successful"
-            }
-        }
-               stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+        stage('Distributed Tasks') {
+            parallel {
+                stage('Compile on Maven Slave 1') {
+                    agent {
+                        label 'SlaveNode-1' // Run this stage on Maven slave node 1
+                    }
+                    steps {
+                        echo 'Compiling on Maven Slave 1...'
+                        sh 'mvn compile'
+                    }
+                    post {
+                        success {
+                            echo 'Compilation on Maven Slave 1 successful'
+                        }
+                        failure {
+                            echo 'Compilation on Maven Slave 1 failed'
+                        }
+                    }
+                }
+                
+                stage('Compile on Maven Slave 2') {
+                    agent {
+                        label 'SlaveNode-2' // Run this stage on Maven slave node 2
+                    }
+                    steps {
+                        echo 'Compiling on Maven Slave 2...'
+                        sh 'mvn compile'
+                    }
+                    post {
+                        success {
+                            echo 'Compilation on Maven Slave 2 successful'
+                        }
+                        failure {
+                            echo 'Compilation on Maven Slave 2 failed'
+                        }
+                    }
+                }
+                
+                stage('Test on Maven Slave 2') {
+                    agent {
+                        label 'SlaveNode-2' // Run this stage on Maven slave node 2
+                    }
+                    steps {
+                        echo 'Testing on Maven Slave 2...'
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+                
+                stage('Build on Maven Slave 1') {
+                    agent {
+                        label 'SlaveNode-1' // Run this stage on Maven slave node 1
+                    }
+                    steps {
+                        echo 'Building on Maven Slave 1...'
+                        sh 'mvn clean package'
+                    }
+                    post {
+                        success {
+                            echo 'Build on Maven Slave 1 successful'
+                            echo 'Archiving artifacts...'
+                            archiveArtifacts artifacts: '**/target/*.war'
+                        }
+                        failure {
+                            echo 'Build on Maven Slave 1 failed'
+                        }
+                    }
                 }
             }
+        }
+        
+ //       stage('Deploy') {
+ //           agent {
+ //              label 'master' // This stage runs on the Jenkins master
+ //           }
+ //           steps {
+ //               echo 'Deploying the application...'
+ //               // Add deployment steps here
+ //           }
+ //       }
+ //   }
+    
+    post {
+        always {
+            echo 'Pipeline finished'
         }
     }
 }
