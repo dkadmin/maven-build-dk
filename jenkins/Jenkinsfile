@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        MAVEN_HOME = tool name: 'Maven 3.9.0', type: 'maven'
+       // MAVEN_HOME = tool name: 'Maven 3.9.0', type: 'maven'
         // Define remote server details
         REMOTE_SERVER = '3.111.245.213'
         REMOTE_USER = 'ubuntu'
