@@ -73,5 +73,7 @@ pipeline {
                     sh "ssh ${REMOTE_USER}@${REMOTE_SERVER} 'sudo systemctl restart your-app.service'"
                 }
             }
-    }
+        }
+     }
 }
+    
