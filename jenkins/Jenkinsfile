@@ -62,7 +62,7 @@ pipeline {
                 // Transfer JAR/WAR file to remote server using SCP
                 script {
                     def artifact = findFiles(glob: 'target/*.jar').collect { it.path }.first()
-                    def remoteFilePath = "${REMOTE_DIR}/$(basename ${artifact})"
+                    def remoteFilePath = "{REMOTE_DIR}/$(basename ${artifact})"
                     
                     sshagent(['tomcatcred']) {
                         sh "scp ${artifact} ${REMOTE_USER}@${REMOTE_SERVER}:${remoteFilePath}"
