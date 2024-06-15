@@ -16,7 +16,7 @@ pipeline {
             parallel {
                 stage('Compile on Maven Slave 2') {
                     agent {
-                        label 'SlaveNode-2' // Run this stage on Maven slave node 1
+                        label 'SlaveNode-2' // Run this stage on Maven slave node 2
                     }
                     steps {
                         echo 'Compiling on Maven Slave 2...'
@@ -24,10 +24,10 @@ pipeline {
                     }
                     post {
                         success {
-                            echo 'Compilation on Maven Slave 1 successful'
+                            echo 'Compilation on Maven Slave 2 successful'
                         }
                         failure {
-                            echo 'Compilation on Maven Slave 1 failed'
+                            echo 'Compilation on Maven Slave 2 failed'
                         }
                     }
                 }
