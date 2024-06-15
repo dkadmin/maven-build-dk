@@ -1,79 +1,47 @@
 pipeline {
     agent any
-    environment {
-       // MAVEN_HOME = tool name: 'Maven 3.9.0', type: 'maven'
-        // Define remote server details
-        REMOTE_SERVER = '3.111.245.213'
-        REMOTE_USER = 'ubuntu'
-        REMOTE_DIR = '/opt/tomcat/webapps'
-    }    
-    stages {
-        stage('Git-Checkout') {
-            steps {
-                // Git checkout step
-                git credentialsId: 'tomcatcred', url: 'https://github.com/dkadmin/maven-build-dk.git'
-                echo "Checkout successful"
+
+
+    parameters {
+         string(name: 'tomcat_staging', defaultValue: '3.111.245.213', description: 'Staging Server')
+       //  string(name: 'tomcat_prod', defaultValue: '13.57.204.205', description: 'Production Server')
+    }
+
+
+stages{
+
+       stage ("Git Checkout"){
+            steps{
+                git credentialsId: 'github', url: 'https://github.com/dkadmin/tomcat-project.git'
             }
         }
-        stage('Compile') {
+        stage('Build'){
             steps {
-                // Maven compile step
-                sh 'mvn compile'
-                echo "Compile successful"
-            }
-        }
-        stage('Build') {
-            steps {
-                // Maven clean and package steps
-                sh 'mvn clean'
-                sh 'mvn package'
-                echo "Build successful"
-            }
-        }
-        stage('Test') {
-            steps {
-                 // Maven test step
-                sh 'mvn test'
-                echo "Test successful"
+                sh 'mvn clean package'
             }
             post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                success {
+                    echo 'Now Archiving starts here...'
+                    archiveArtifacts artifacts: '**/target/*.war'
                 }
             }
         }
-//        stage('Deliver') {
-//            steps {
-               // sh './jenkins/scripts/deliver.sh'
-//            }   
-//        }
-//                stage('Deploy') {
-//            steps {
-//                // Tomcat deployment step
- //               deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '/var/lib/jenkins/workspace/tomcat-deployment/target/my-app-1.0-SNAPSHOT.jar', url: 'http://3.111.245.213:8080/')], 
- //                      contextPath: 'simpliearnarfact', 
- //                      onFailure: false, 
- //                      war: '**/*.jar'
- //               echo "Deploy successful"
- //           }
-//        }
-        stage('Deploy') {
-            steps {
-                // Transfer JAR/WAR file to remote server using SCP
-                script {
-                    def artifact = findFiles(glob: 'target/*.jar').collect { it.path }.first()
-                    def remoteFilePath = "${REMOTE_DIR}/(basename ${artifact})"
-                    
-                    sshagent(['tomcatcred']) {
-                        sh "scp ${artifact} ${REMOTE_USER}@${REMOTE_SERVER}:${remoteFilePath}"
+
+        stage ('Deployments'){
+            parallel{
+                stage ('Deploy to Staging environment'){
+                    steps {
+                        sh "echo y | pscp -i /home/ubuntu/.ssh/id_ed25519 /var/lib/jenkins/workspace/tomcat-deployment/target/*.war ubuntu@${params.tomcat_staging}:/opt/tomcat/webapps/"
+
                     }
                 }
-                // Optionally, execute commands on remote server after deployment
-                sshagent(['tomcatcred']) {
-                    sh "ssh ${REMOTE_USER}@${REMOTE_SERVER} 'sudo systemctl restart your-app.service'"
-                }
+
+//                stage ("Deploy to Production environment"){
+ //                   steps {
+ //                       sh "echo y | pscp -i C:\\Users\\grvtr\\Desktop\\Project\\AlternativeFiles\\Redis-Key.ppk C:\\Users\\grvtr\\Desktop\\Project\\AlternativeFiles\\*.war ec2-user@${params.tomcat_prod}:/var/lib/tomcat7/webapps"
+ //                   }
+ //               }
             }
         }
-     }
+    }
 }
-    
