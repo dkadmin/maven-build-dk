@@ -14,12 +14,12 @@ pipeline {
         
         stage('Distributed Tasks') {
             parallel {
-                stage('Compile on Maven Slave 1') {
+                stage('Compile on Maven Slave 2') {
                     agent {
-                        label 'SlaveNode-1' // Run this stage on Maven slave node 1
+                        label 'SlaveNode-2' // Run this stage on Maven slave node 1
                     }
                     steps {
-                        echo 'Compiling on Maven Slave 1...'
+                        echo 'Compiling on Maven Slave 2...'
                         sh 'mvn compile'
                     }
                     post {
