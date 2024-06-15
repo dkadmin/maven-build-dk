@@ -21,7 +21,7 @@ pipeline {
                 // Maven clean and package steps
                 sh 'mvn clean'
                 sh 'mvn package'
-                sh 'java -jar /home/ubuntu/simpliearnarfact.jar'
+                sh 'java -jar /var/lib/jenkins/simpliearnarfact.jar'
                 echo "Build successful"
             }
         }
