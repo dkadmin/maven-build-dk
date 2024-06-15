@@ -1,6 +1,12 @@
 pipeline {
     agent any
-
+    environment {
+        MAVEN_HOME = tool name: 'Maven 3.9.0', type: 'maven'
+        // Define remote server details
+        REMOTE_SERVER = '3.111.245.213'
+        REMOTE_USER = 'ubuntu'
+        REMOTE_DIR = '/opt/tomcat/webapps'
+    }    
     stages {
         stage('Git-Checkout') {
             steps {
@@ -41,15 +47,31 @@ pipeline {
                // sh './jenkins/scripts/deliver.sh'
 //            }   
 //        }
-                stage('Deploy') {
+//                stage('Deploy') {
+//            steps {
+//                // Tomcat deployment step
+ //               deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '/var/lib/jenkins/workspace/tomcat-deployment/target/my-app-1.0-SNAPSHOT.jar', url: 'http://3.111.245.213:8080/')], 
+ //                      contextPath: 'simpliearnarfact', 
+ //                      onFailure: false, 
+ //                      war: '**/*.jar'
+ //               echo "Deploy successful"
+ //           }
+//        }
+        stage('Deploy') {
             steps {
-                // Tomcat deployment step
-                deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '/var/lib/jenkins/workspace/tomcat-deployment/target/my-app-1.0-SNAPSHOT.jar', url: 'http://3.111.245.213:8080/')], 
-                       contextPath: 'simpliearnarfact', 
-                       onFailure: false, 
-                       war: '**/*.jar'
-                echo "Deploy successful"
+                // Transfer JAR/WAR file to remote server using SCP
+                script {
+                    def artifact = findFiles(glob: 'target/*.jar').collect { it.path }.first()
+                    def remoteFilePath = "${REMOTE_DIR}/$(basename ${artifact})"
+                    
+                    sshagent(['tomcatcred']) {
+                        sh "scp ${artifact} ${REMOTE_USER}@${REMOTE_SERVER}:${remoteFilePath}"
+                    }
+                }
+                // Optionally, execute commands on remote server after deployment
+                sshagent(['tomcatcred']) {
+                    sh "ssh ${REMOTE_USER}@${REMOTE_SERVER} 'sudo systemctl restart your-app.service'"
+                }
             }
-        }
     }
 }
