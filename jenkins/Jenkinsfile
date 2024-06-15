@@ -21,7 +21,6 @@ pipeline {
                 // Maven clean and package steps
                 sh 'mvn clean'
                 sh 'mvn package'
-                sh 'java -jar /var/lib/jenkins/simpliearnarfact.jar'
                 echo "Build successful"
             }
         }
@@ -45,7 +44,7 @@ pipeline {
                 stage('Deploy') {
             steps {
                 // Tomcat deployment step
-                deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '/opt/tomcat/webapps', url: 'http://3.111.245.213:8080/')], 
+                deploy adapters: [tomcat9(credentialsId: 'tomcatcred', path: '/var/lib/jenkins/workspace/tomcat-deployment/target/my-app-1.0-SNAPSHOT.jar', url: 'http://3.111.245.213:8080/')], 
                        contextPath: 'simpliearnarfact', 
                        onFailure: false, 
                        war: '**/*.jar'
